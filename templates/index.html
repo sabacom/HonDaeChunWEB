@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+    <!-- StupidTable.js -->
+    <script src=" https://cdn.jsdelivr.net/npm/stupid-table-plugin@1.1.3/stupidtable.min.js "></script>
+
+    <title>HonDaeChun WEB</title>
+    <style>
+      body {
+        transition: background-color .5s, color .5s;
+      }
+      th, td {
+        text-align: center;
+        vertical-align: middle;
+      }
+      thead th {
+        cursor: pointer;
+      }
+      .dark-mode {
+        background-color: #242526;
+        color: #ffffff;
+      }
+      .dark-mode .form-control {
+        color: #ffffff;
+        background-color: #3a3b3c;
+      }
+      .dark-mode .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      .dark-mode .table-striped tbody tr:nth-of-type(even) {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      .dark-mode .table thead th,
+      .dark-mode .table tbody td {
+        color: #ffffff;
+        border-color: #ffffff;
+      }
+    </style>
+  </head>
+
+  <body class="{{ 'dark-mode' if dark_mode == 'on' else '' }}">
+    <div class="container text-center">
+      <h1 class="my-3">HonDaeChun WEB</h1>
+      <form action="/" method="post" class="row justify-content-center mb-3">
+        <div class="col-md-10">
+          <input type="text" class="form-control" id="query" name="query" placeholder="검색 내용을 입력해주세요. (유튜브 링크는 유튜브ID만 입력)">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">검색</button>
+        </div>
+      </form>
+
+      {% if results %}
+        <div class="table-responsive">
+          <table id="resultsTable" class="table table-striped">
+            <thead>
+              <tr>
+                <th width="15%" data-sort="string">유형</th>
+                <th width="32%" data-sort="string">제목</th>
+                <th width="20%" data-sort="string">채널명</th>
+                <th width="11%" data-sort="string">최초전송일</th>
+                <th width="7%" data-sort="string">전송자</th>
+                <th width="12%" data-sort="string">유튜브ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in results %}
+                <tr>
+                  <td>{{ row.유형 }}</td>
+                  <td>
+                    {% if row.유형 == '유튜브' and row.유튜브id %}
+                      <a href="https://youtu.be/{{ row.유튜브id }}" target="_blank">{{ row.제목 or "" }}</a>
+                    {% elif row.유형 == '쇼츠' and row.유튜브id %}
+                      <a href="https://youtube.com/shorts/{{ row.유튜브id }}" target="_blank">{{ row.제목 or "" }}</a>
+                    {% elif row.유형 == '애플뮤직' and row.애플뮤직URL %}
+                      <a href="{{ row.애플뮤직URL }}" target="_blank">{{ row.제목 or "" }}</a>
+                    {% else %}
+                      {{ row.제목 }}
+                    {% endif %}
+                  </td>
+                  <td>{{ row.채널명 or "" }}</td>
+                  <td>{{ row.최초전송일 }}</td> 
+                  <td>{{ row.전송자 }}</td>
+                  <td>{{ row.유튜브id or "" }}</td> 
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <h3 class="my-3 text-left">검색 결과가 없습니다.</h3>
+        
+      {% endif %}
+
+<div class="d-flex align-items-center justify-content-between">
+    <p>DB 업데이트 : {{ db_creation_date }}</p>
+    <div class="d-flex align-items-center">
+        {% if username == 'admin' %}
+            <a href="{{ url_for('admin') }}" class="btn btn-dark mb-3 mr-3">관리자 패널</a>
+        {% endif %}
+        <button id="darkModeButton" type="button" class="btn btn-dark mb-3 mr-3">다크모드</button>
+        <a href="{{ url_for('logout') }}" class="btn btn-dark mb-3">로그아웃</a>
+    </div>
+</div>
+
+
+
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var button = document.getElementById('darkModeButton');
+        button.addEventListener('click', function () {
+          var darkModeEnabled = document.body.classList.toggle('dark-mode');
+          setCookie('dark_mode', darkModeEnabled ? 'on' : 'off', 30);
+        });
+
+        // Set focus on the query input field
+        var queryInput = document.getElementById('query');
+        queryInput.focus();
+
+        // Initialize StupidTable on the results table
+        var table = document.getElementById('resultsTable');
+        $(table).stupidtable();
+      });
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+
+      function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }
+    </script>
+  </body>
+</html>

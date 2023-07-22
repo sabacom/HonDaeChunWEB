@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <title>HonDaeChun WEB</title>
+   <style>
+    .dark-mode {
+        background-color: #242526;
+        color: #ffffff;
+    }
+    .dark-mode .form-control {
+        color: #ffffff;
+        background-color: #3a3b3c;
+    }
+    .dark-mode .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .dark-mode .table-striped tbody tr:nth-of-type(even) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .dark-mode .table thead th,
+    .dark-mode .table tbody td {
+        color: #ffffff;
+        border-color: #ffffff;
+
+    }
+        .btn {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+
+        }
+</style>
+</head>
+<body id="body" class="{{ 'dark-mode' if dark_mode == 'on' else '' }}">
+    <div class="container">
+        <h1 class="text-center mt-5">관리자 패널</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <table class="table table-striped mt-5">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center">유저 ID</th>
+                            <th scope="col" class="text-center">사용자 이름</th>
+                            <th scope="col" class="text-center">승인여부</th>
+                            <th scope="col" class="text-center">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td class="text-center">{{ user.id }}</td>
+                            <td class="text-center">{{ user.username }}</td>
+                            <td class="text-center">{{ "Yes" if user.is_approved else "No" }}</td>
+                            <td class="text-center">
+                                <form method="post">
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    {% if not user.is_approved %}
+                                    <button type="submit" class="btn btn-success skinny-btn" name="action" value="approve">승인</button>
+                                    {% endif %}
+                                    {% if user.username != "admin" %}
+                                    <button type="submit" class="btn btn-danger skinny-btn" name="action" value="delete">삭제</button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="text-center mt-5 mb-5">
+            <a href="/" class="btn btn-primary">이전으로</a>
+        </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Get dark mode value from cookies
+        var darkMode = getCookie('dark_mode');
+
+        // If dark mode is enabled, add the dark mode class to the body
+        if (darkMode == 'on') {
+          document.getElementById('body').classList.add('dark-mode');
+        }
+      });
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+    </script>
+</body>
+</html>
