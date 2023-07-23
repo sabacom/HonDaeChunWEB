@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, text
+import time
 import re
 
 app = Flask(__name__)
@@ -132,7 +133,8 @@ def main():
             results = connection.execute(stmt, {"query": f"%{query}%"}).fetchall()
 
     response = make_response(render_template('index.html', username=username, results=results, db_creation_date=db_creation_date, dark_mode=dark_mode))
-    response.set_cookie('dark_mode', dark_mode)
+    expire_time = time.time() + 365 * 24 * 60 * 60
+    response.set_cookie('dark_mode', dark_mode, expires=expire_time)
     return response
 
 @app.route('/logout')
